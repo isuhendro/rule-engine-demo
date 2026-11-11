@@ -1,0 +1,7 @@
+[
+  {"partno": "AV-ALL", "desc": "AV for ALL customers", "customers": []},
+  {"partno": "AV-TOP-A", "desc": "AV tied to Top A", "customers": ["TopA"]},
+  {"partno": "AV-ACCT-A1", "desc": "AV tied to Account A1", "customers": ["A1"]},
+  {"partno": "AV-ORG-A1b", "desc": "AV tied to Org A1b only", "customers": ["A1b"]},
+  {"partno": "AV-MIX", "desc": "AV tied to Account A2 and Org B1a (N = 2)", "customers": ["A2", "B1a"]}
+]

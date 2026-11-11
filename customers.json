@@ -1,0 +1,11 @@
+[
+  {"id": "TopA", "name": "Top A", "level": 1, "parent": null, "mdmId": "MDM-1001"},
+  {"id": "A1", "name": "Account A1", "level": 2, "parent": "TopA", "mdmId": "MDM-2001"},
+  {"id": "A1a", "name": "Org A1a", "level": 3, "parent": "A1", "mdmId": "MDM-3001"},
+  {"id": "A1b", "name": "Org A1b", "level": 3, "parent": "A1", "mdmId": "MDM-3002"},
+  {"id": "A2", "name": "Account A2", "level": 2, "parent": "TopA", "mdmId": "MDM-2002"},
+  {"id": "A2a", "name": "Org A2a", "level": 3, "parent": "A2", "mdmId": "MDM-3003"},
+  {"id": "TopB", "name": "Top B", "level": 1, "parent": null, "mdmId": "MDM-1002"},
+  {"id": "B1", "name": "Account B1", "level": 2, "parent": "TopB", "mdmId": "MDM-2003"},
+  {"id": "B1a", "name": "Org B1a", "level": 3, "parent": "B1", "mdmId": "MDM-3004"}
+]

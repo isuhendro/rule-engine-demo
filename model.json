@@ -1,0 +1,35 @@
+{
+  "_comment": "Hand-written example. AVs for ALL customers (AV-ALL), 1 customer (AV-ONE) and N customers (AV-TWO, AV-THREE). Node id == item index for items.",
+  "Chaids": [
+    {"chaId": "CUST", "chaDes": "Customer", "multiple": false, "precon": 0, "firstItem": 0, "lastItem": 3, "required": false, "visible": true, "selcon": false},
+    {"chaId": "SERVICES", "chaDes": "Services AVs (opens once a customer is chosen)", "precon": -1, "firstItem": 4, "lastItem": 7, "required": false, "visible": true, "selcon": false}
+  ],
+  "Items": [
+    {"partno": "CUST:A", "partdes": "Customer A", "inode": 0, "precon": 0, "selected": false, "visible": true, "selcon": false},
+    {"partno": "CUST:B", "partdes": "Customer B", "inode": 1, "precon": 0, "selected": false, "visible": true, "selcon": false},
+    {"partno": "CUST:C", "partdes": "Customer C", "inode": 2, "precon": 0, "selected": false, "visible": true, "selcon": false},
+    {"partno": "CUST:D", "partdes": "Customer D", "inode": 3, "precon": 0, "selected": false, "visible": true, "selcon": false},
+    {"partno": "AV-ONE", "partdes": "AV for 1 customer  [Customer A]", "inode": 4, "precon": -1, "selected": false, "visible": true, "selcon": false},
+    {"partno": "AV-TWO", "partdes": "AV for N=2 customers  [Customer B, Customer C]", "inode": 5, "precon": -1, "selected": false, "visible": true, "selcon": false},
+    {"partno": "AV-THREE", "partdes": "AV for N=3 customers  [Customer A, Customer C, Customer D]  (a real configurator can have 20 or more)", "inode": 6, "precon": -1, "selected": false, "visible": true, "selcon": false},
+    {"partno": "AV-ALL", "partdes": "AV for ALL customers  [no customer-specific rule]", "inode": 7, "precon": 0, "selected": false, "visible": true, "selcon": false}
+  ],
+  "Nodes": [
+    {"id": 0, "name": "CUST:A", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 2, "node": [10, 11, 12, 17]}]},
+    {"id": 1, "name": "CUST:B", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 2, "node": [10, 11, 15]}]},
+    {"id": 2, "name": "CUST:C", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 2, "node": [10, 11, 15, 17]}]},
+    {"id": 3, "name": "CUST:D", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 2, "node": [10, 11, 17]}]},
+    {"id": 4, "name": "Item_AV-ONE", "type": 2, "g": -1, "a": 0, "b": 0, "edges": []},
+    {"id": 5, "name": "Item_AV-TWO", "type": 2, "g": -1, "a": 0, "b": 0, "edges": []},
+    {"id": 6, "name": "Item_AV-THREE", "type": 2, "g": -1, "a": 0, "b": 0, "edges": []},
+    {"id": 7, "name": "Item_AV-ALL", "type": 2, "g": -1, "a": 0, "b": 0, "edges": []},
+    {"id": 10, "name": "Choice_CUST_CVG1 (any customer chosen)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 2, "node": [13, 16]}]},
+    {"id": 11, "name": "Choice_CUST_CVG2 (any customer, feeds CustA* inverted)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 130, "node": [12]}]},
+    {"id": 12, "name": "CustA* (no customer yet, or it is Customer A)", "type": 2, "g": 0, "a": 0, "b": 0, "edges": [{"type": 2, "node": [13]}]},
+    {"id": 13, "name": "Pa_CUST_A (AND: customer chosen AND CustA*)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 2, "node": [14]}]},
+    {"id": 14, "name": "P_Item_AV-ONE (1 customer, AND)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 67, "node": [4]}]},
+    {"id": 15, "name": "P_Item_AV-TWO (OR: Customer B or C)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 67, "node": [5]}]},
+    {"id": 16, "name": "P_Choice_SERVICES (opens the services choice)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 65, "node": [1]}]},
+    {"id": 17, "name": "P_Item_AV-THREE (OR: Customer A, C or D)", "type": 2, "g": -1, "a": 0, "b": 0, "edges": [{"type": 67, "node": [6]}]}
+  ]
+}
