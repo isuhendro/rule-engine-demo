@@ -1,5 +1,3 @@
-// Engine core: same code as the <core> block in page.template.html (kept in sync by hand). Used by engine.js and the tests.
-
 // Engine core: same code as the <core> block in page.template.html (kept in sync by hand). A small version of the real rules engine; returns a trace instead of printing.
 export function createEngine(model){
   const nodeById = new Map(model.Nodes.map(n => [n.id, n]));
