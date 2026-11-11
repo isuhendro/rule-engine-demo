@@ -1,16 +1,17 @@
-<title>Rule Engine Demo</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rule engine demo</title>
 <style>
-/* Layout: two columns (configuration + model on the left, trace + gate counters on the right), stacked on phones. */
-:root{--bg:#f6f7f9;--card:#fff;--fg:#1d2330;--mut:#6b7385;--line:#dde1e8;--ok:#127a3d;--okbg:#e3f5ea;--bad:#a4262c;--badbg:#fbe9ea;--acc:#1f5fd1;--accbg:#e6eefc;--warn:#8a5a00;--warnbg:#fff3d6}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1d222b;--fg:#e7eaf0;--mut:#98a1b3;--line:#2e3542;--ok:#5fd38d;--okbg:#17301f;--bad:#ff8a8f;--badbg:#3a1c1e;--acc:#7aa7ff;--accbg:#1b2a47;--warn:#f0c15a;--warnbg:#3a2f12;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#14171d;--card:#1d222b;--fg:#e7eaf0;--mut:#98a1b3;--line:#2e3542;--ok:#5fd38d;--okbg:#17301f;--bad:#ff8a8f;--badbg:#3a1c1e;--acc:#7aa7ff;--accbg:#1b2a47;--warn:#f0c15a;--warnbg:#3a2f12;color-scheme:dark}
-
+  :root{--bg:#f6f7f9;--card:#fff;--fg:#1d2330;--mut:#6b7385;--line:#dde1e8;--ok:#127a3d;--okbg:#e3f5ea;--bad:#a4262c;--badbg:#fbe9ea;--acc:#1f5fd1;--accbg:#e6eefc;--warn:#8a5a00;--warnbg:#fff3d6}
+  @media (prefers-color-scheme:dark){:root{--bg:#14171d;--card:#1d222b;--fg:#e7eaf0;--mut:#98a1b3;--line:#2e3542;--ok:#5fd38d;--okbg:#17301f;--bad:#ff8a8f;--badbg:#3a1c1e;--acc:#7aa7ff;--accbg:#1b2a47;--warn:#f0c15a;--warnbg:#3a2f12}}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,Segoe UI,sans-serif;padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-  header{padding:16px 0;border-bottom:1px solid var(--line)}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,Segoe UI,sans-serif}
+  header{padding:16px;border-bottom:1px solid var(--line)}
   h1{margin:0;font-size:18px} header p{margin:4px 0 0;color:var(--mut)}
-  main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;padding:16px 0;max-width:1400px;margin:auto}
+  main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;padding:16px;max-width:1400px;margin:auto}
   @media(max-width:900px){main{grid-template-columns:1fr}}
   section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
   h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
@@ -25,15 +26,17 @@
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
   button.primary{background:var(--acc);color:#fff;border-color:transparent}
-  #trace{max-width:100%;font:13px/1.5 ui-monospace,Consolas,monospace;max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);white-space:pre}
+  #trace{font:13px/1.5 ui-monospace,Consolas,monospace;max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);white-space:pre}
   .t-click{font-weight:700;margin-top:6px;color:var(--acc)}.t-flip{color:var(--ok)}.t-stop{color:var(--mut)}.t-out{color:var(--acc);font-weight:600}.t-warn{color:var(--bad)}
-  table{border-collapse:collapse;width:100%;font-size:13px}.scroll{overflow-x:auto}td,th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  table{border-collapse:collapse;width:100%;font-size:13px}td,th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
   td.g{font-family:ui-monospace,Consolas,monospace}tr.chg td{background:var(--warnbg)}tr.on td.g{color:var(--ok);font-weight:700}
+  select{font:inherit;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);max-width:100%}
   textarea{width:100%;height:260px;font:12px/1.4 ui-monospace,Consolas,monospace;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px}
   details summary{cursor:pointer;color:var(--acc)} .msg{color:var(--bad);font-size:13px;min-height:18px}
   .note{color:var(--mut);font-size:13px}
 </style>
-
+</head>
+<body>
 <header>
   <h1>Configurator rule engine – interactive demo</h1>
   <p>Click an item. The right side shows how the change travels through the gates. Blocked items cannot be selected, like in the real UI.</p>
@@ -48,6 +51,8 @@
     </section>
     <section style="margin-top:16px">
       <h2>Model (editable)</h2>
+      <div class="row" style="margin:0 0 10px"><label for="modelsel">Example:</label>
+        <select id="modelsel"><option value="flat">Flat customers: AVs for all / 1 / N customers</option><option value="hier">Customer hierarchy baked into the model: Top &gt; Account &gt; Org</option><option value="keys">Customer picked through an API (returns parent and grandparent ids)</option></select></div>
       <details><summary>Show / edit model JSON</summary>
         <textarea id="modeljson" spellcheck="false"></textarea>
         <div class="row"><button class="primary" id="load">Load this model</button></div>
@@ -63,16 +68,17 @@
     </section>
     <section style="margin-top:16px">
       <h2>Gate states (<span class="pn">g</span> counters)</h2>
-      <div class="scroll"><table id="gates"></table></div>
+      <table id="gates"></table>
       <p class="note">A gate is <b>on</b> when g &ge; 0. Start values encode the rule: -1 = needs one input (OR), -2 = needs two (AND).</p>
     </section>
   </div>
 </main>
 <script>
-const MODEL_TEXT = "{\n  \"_comment\": \"ARTIFICIAL model in the real shape (Chaids / Items / Nodes) with generic names. Customer-specific AVs: 0 wires = all customers (AV-ALL), 1 customer (AV-ONE), N customers (AV-TWO N=2, AV-THREE N=3). Node ids 0..7 are item nodes (node id == item index).\",\n  \"Chaids\": [\n    {\"chaId\": \"CUST\", \"chaDes\": \"Customer\", \"multiple\": false, \"precon\": 0, \"firstItem\": 0, \"lastItem\": 3},\n    {\"chaId\": \"SERVICES\", \"chaDes\": \"Services AVs (opens once a customer is chosen)\", \"precon\": -1, \"firstItem\": 4, \"lastItem\": 7}\n  ],\n  \"Items\": [\n    {\"partno\": \"CUST:A\", \"partdes\": \"Customer A\", \"inode\": 0, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:B\", \"partdes\": \"Customer B\", \"inode\": 1, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:C\", \"partdes\": \"Customer C\", \"inode\": 2, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:D\", \"partdes\": \"Customer D\", \"inode\": 3, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"AV-ONE\", \"partdes\": \"AV for 1 customer  [Customer A]\", \"inode\": 4, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-TWO\", \"partdes\": \"AV for N=2 customers  [Customer B, Customer C]\", \"inode\": 5, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-THREE\", \"partdes\": \"AV for N=3 customers  [Customer A, Customer C, Customer D]  (a real configurator can have 20 or more)\", \"inode\": 6, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-ALL\", \"partdes\": \"AV for ALL customers  [no customer-specific rule]\", \"inode\": 7, \"precon\": 0, \"selected\": false}\n  ],\n  \"Nodes\": [\n    {\"id\": 0, \"name\": \"CUST:A\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 12, 17]}]},\n    {\"id\": 1, \"name\": \"CUST:B\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 15]}]},\n    {\"id\": 2, \"name\": \"CUST:C\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 15, 17]}]},\n    {\"id\": 3, \"name\": \"CUST:D\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 17]}]},\n    {\"id\": 4, \"name\": \"Item_AV-ONE\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 5, \"name\": \"Item_AV-TWO\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 6, \"name\": \"Item_AV-THREE\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 7, \"name\": \"Item_AV-ALL\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 10, \"name\": \"Choice_CUST_CVG1 (any customer chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [13, 16]}]},\n    {\"id\": 11, \"name\": \"Choice_CUST_CVG2 (any customer, feeds CustA* inverted)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 130, \"node\": [12]}]},\n    {\"id\": 12, \"name\": \"CustA* (no customer yet, or it is Customer A)\", \"type\": 2, \"g\": 0, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [13]}]},\n    {\"id\": 13, \"name\": \"Pa_CUST_A (AND: customer chosen AND CustA*)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [14]}]},\n    {\"id\": 14, \"name\": \"P_Item_AV-ONE (1 customer, AND)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [4]}]},\n    {\"id\": 15, \"name\": \"P_Item_AV-TWO (OR: Customer B or C)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [5]}]},\n    {\"id\": 16, \"name\": \"P_Choice_SERVICES (opens the services choice)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 65, \"node\": [1]}]},\n    {\"id\": 17, \"name\": \"P_Item_AV-THREE (OR: Customer A, C or D)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [6]}]}\n  ]\n}\n";
+const MODELS = { flat: "{\n  \"_comment\": \"ARTIFICIAL model in the real shape (Chaids / Items / Nodes) with generic names. Customer-specific AVs: 0 wires = all customers (AV-ALL), 1 customer (AV-ONE), N customers (AV-TWO N=2, AV-THREE N=3). Node ids 0..7 are item nodes (node id == item index).\",\n  \"Chaids\": [\n    {\"chaId\": \"CUST\", \"chaDes\": \"Customer\", \"multiple\": false, \"precon\": 0, \"firstItem\": 0, \"lastItem\": 3},\n    {\"chaId\": \"SERVICES\", \"chaDes\": \"Services AVs (opens once a customer is chosen)\", \"precon\": -1, \"firstItem\": 4, \"lastItem\": 7}\n  ],\n  \"Items\": [\n    {\"partno\": \"CUST:A\", \"partdes\": \"Customer A\", \"inode\": 0, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:B\", \"partdes\": \"Customer B\", \"inode\": 1, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:C\", \"partdes\": \"Customer C\", \"inode\": 2, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:D\", \"partdes\": \"Customer D\", \"inode\": 3, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"AV-ONE\", \"partdes\": \"AV for 1 customer  [Customer A]\", \"inode\": 4, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-TWO\", \"partdes\": \"AV for N=2 customers  [Customer B, Customer C]\", \"inode\": 5, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-THREE\", \"partdes\": \"AV for N=3 customers  [Customer A, Customer C, Customer D]  (a real configurator can have 20 or more)\", \"inode\": 6, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-ALL\", \"partdes\": \"AV for ALL customers  [no customer-specific rule]\", \"inode\": 7, \"precon\": 0, \"selected\": false}\n  ],\n  \"Nodes\": [\n    {\"id\": 0, \"name\": \"CUST:A\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 12, 17]}]},\n    {\"id\": 1, \"name\": \"CUST:B\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 15]}]},\n    {\"id\": 2, \"name\": \"CUST:C\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 15, 17]}]},\n    {\"id\": 3, \"name\": \"CUST:D\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 17]}]},\n    {\"id\": 4, \"name\": \"Item_AV-ONE\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 5, \"name\": \"Item_AV-TWO\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 6, \"name\": \"Item_AV-THREE\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 7, \"name\": \"Item_AV-ALL\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 10, \"name\": \"Choice_CUST_CVG1 (any customer chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [13, 16]}]},\n    {\"id\": 11, \"name\": \"Choice_CUST_CVG2 (any customer, feeds CustA* inverted)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 130, \"node\": [12]}]},\n    {\"id\": 12, \"name\": \"CustA* (no customer yet, or it is Customer A)\", \"type\": 2, \"g\": 0, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [13]}]},\n    {\"id\": 13, \"name\": \"Pa_CUST_A (AND: customer chosen AND CustA*)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [14]}]},\n    {\"id\": 14, \"name\": \"P_Item_AV-ONE (1 customer, AND)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [4]}]},\n    {\"id\": 15, \"name\": \"P_Item_AV-TWO (OR: Customer B or C)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [5]}]},\n    {\"id\": 16, \"name\": \"P_Choice_SERVICES (opens the services choice)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 65, \"node\": [1]}]},\n    {\"id\": 17, \"name\": \"P_Item_AV-THREE (OR: Customer A, C or D)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [6]}]}\n  ]\n}\n", hier: "{\n  \"_comment\": \"ARTIFICIAL model: customer hierarchy L1 Top > L2 Account > L3 Org. A customer item feeds its own gate G_x, and every gate feeds its parent gate, so choosing an org turns on its org, account and top gates. An AV is wired to the gate of the level it is tied to, so every descendant inherits it. Node ids 0..13 are item nodes.\",\n  \"Chaids\": [\n    {\"chaId\": \"CUST\", \"chaDes\": \"Customer (any level, e.g. from an MDM lookup)\", \"multiple\": false, \"precon\": 0, \"firstItem\": 0, \"lastItem\": 8},\n    {\"chaId\": \"SERVICES\", \"chaDes\": \"Services AVs (opens once a customer is chosen)\", \"precon\": -1, \"firstItem\": 9, \"lastItem\": 13}\n  ],\n  \"Items\": [\n    {\"partno\": \"CUST:TopA\", \"partdes\": \"L1 Top A\", \"inode\": 0, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:A1\", \"partdes\": \"L2 Account A1\", \"inode\": 1, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:A1a\", \"partdes\": \"L3 Org A1a\", \"inode\": 2, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:A1b\", \"partdes\": \"L3 Org A1b\", \"inode\": 3, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:A2\", \"partdes\": \"L2 Account A2\", \"inode\": 4, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:A2a\", \"partdes\": \"L3 Org A2a\", \"inode\": 5, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:TopB\", \"partdes\": \"L1 Top B\", \"inode\": 6, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:B1\", \"partdes\": \"L2 Account B1\", \"inode\": 7, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:B1a\", \"partdes\": \"L3 Org B1a\", \"inode\": 8, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"AV-ALL\", \"partdes\": \"AV for ALL customers  [no customer rule]\", \"inode\": 9, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"AV-TOP-A\", \"partdes\": \"AV tied to Top A  [inherited by A1, A1a, A1b, A2, A2a]\", \"inode\": 10, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-ACCT-A1\", \"partdes\": \"AV tied to Account A1  [inherited by A1a, A1b]\", \"inode\": 11, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-ORG-A1b\", \"partdes\": \"AV tied to Org A1b only\", \"inode\": 12, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-MIX\", \"partdes\": \"AV tied to Account A2 and Org B1a  [N = 2, different branches]\", \"inode\": 13, \"precon\": -1, \"selected\": false}\n  ],\n  \"Nodes\": [\n    {\"id\": 0, \"name\": \"CUST:TopA\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 20]}]},\n    {\"id\": 1, \"name\": \"CUST:A1\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 21]}]},\n    {\"id\": 2, \"name\": \"CUST:A1a\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 22]}]},\n    {\"id\": 3, \"name\": \"CUST:A1b\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 23]}]},\n    {\"id\": 4, \"name\": \"CUST:A2\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 24]}]},\n    {\"id\": 5, \"name\": \"CUST:A2a\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 25]}]},\n    {\"id\": 6, \"name\": \"CUST:TopB\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 26]}]},\n    {\"id\": 7, \"name\": \"CUST:B1\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 27]}]},\n    {\"id\": 8, \"name\": \"CUST:B1a\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [30, 28]}]},\n    {\"id\": 9, \"name\": \"Item_AV-ALL\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 10, \"name\": \"Item_AV-TOP-A\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 11, \"name\": \"Item_AV-ACCT-A1\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 12, \"name\": \"Item_AV-ORG-A1b\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 13, \"name\": \"Item_AV-MIX\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 20, \"name\": \"G_TopA (L1: Top A or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [40]}]},\n    {\"id\": 21, \"name\": \"G_A1 (L2: Account A1 or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [20, 41]}]},\n    {\"id\": 22, \"name\": \"G_A1a (L3: Org A1a or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [21]}]},\n    {\"id\": 23, \"name\": \"G_A1b (L3: Org A1b or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [21, 42]}]},\n    {\"id\": 24, \"name\": \"G_A2 (L2: Account A2 or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [20, 43]}]},\n    {\"id\": 25, \"name\": \"G_A2a (L3: Org A2a or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [24]}]},\n    {\"id\": 26, \"name\": \"G_TopB (L1: Top B or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 27, \"name\": \"G_B1 (L2: Account B1 or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [26]}]},\n    {\"id\": 28, \"name\": \"G_B1a (L3: Org B1a or anything below it chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [27, 43]}]},\n    {\"id\": 30, \"name\": \"Choice_CUST_CVG1 (any customer chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [32]}]},\n    {\"id\": 32, \"name\": \"P_Choice_SERVICES (opens the AV choice)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 65, \"node\": [1]}]},\n    {\"id\": 40, \"name\": \"P_Item_AV-TOP-A (OR over the wired hierarchy gates)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [10]}]},\n    {\"id\": 41, \"name\": \"P_Item_AV-ACCT-A1 (OR over the wired hierarchy gates)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [11]}]},\n    {\"id\": 42, \"name\": \"P_Item_AV-ORG-A1b (OR over the wired hierarchy gates)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [12]}]},\n    {\"id\": 43, \"name\": \"P_Item_AV-MIX (OR over the wired hierarchy gates)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [13]}]}\n  ]\n}\n", keys: "{\n  \"_comment\": \"GENERATED by bake.mjs --keys. Hierarchy is resolved by an API at configuration time. _api is only a stand-in for that API (used by the demo page); the engine ignores it.\",\n  \"_api\": [{\"id\":\"TopA\",\"name\":\"Top A\",\"level\":1,\"parent\":null,\"mdmId\":\"MDM-1001\"},{\"id\":\"A1\",\"name\":\"Account A1\",\"level\":2,\"parent\":\"TopA\",\"mdmId\":\"MDM-2001\"},{\"id\":\"A1a\",\"name\":\"Org A1a\",\"level\":3,\"parent\":\"A1\",\"mdmId\":\"MDM-3001\"},{\"id\":\"A1b\",\"name\":\"Org A1b\",\"level\":3,\"parent\":\"A1\",\"mdmId\":\"MDM-3002\"},{\"id\":\"A2\",\"name\":\"Account A2\",\"level\":2,\"parent\":\"TopA\",\"mdmId\":\"MDM-2002\"},{\"id\":\"A2a\",\"name\":\"Org A2a\",\"level\":3,\"parent\":\"A2\",\"mdmId\":\"MDM-3003\"},{\"id\":\"TopB\",\"name\":\"Top B\",\"level\":1,\"parent\":null,\"mdmId\":\"MDM-1002\"},{\"id\":\"B1\",\"name\":\"Account B1\",\"level\":2,\"parent\":\"TopB\",\"mdmId\":\"MDM-2003\"},{\"id\":\"B1a\",\"name\":\"Org B1a\",\"level\":3,\"parent\":\"B1\",\"mdmId\":\"MDM-3004\"}],\n  \"Chaids\": [\n    {\"chaId\":\"CUSTKEY\",\"chaDes\":\"Customer keys (hidden, set from the API result)\",\"multiple\":true,\"hidden\":true,\"precon\":0,\"firstItem\":0,\"lastItem\":4},\n    {\"chaId\":\"SERVICES\",\"chaDes\":\"Services AVs\",\"precon\":0,\"firstItem\":5,\"lastItem\":9}\n  ],\n  \"Items\": [\n    {\"partno\":\"KEY:TopA\",\"partdes\":\"Customer key Top A\",\"mdmId\":\"MDM-1001\",\"inode\":0,\"precon\":0,\"selected\":false},\n    {\"partno\":\"KEY:A1\",\"partdes\":\"Customer key Account A1\",\"mdmId\":\"MDM-2001\",\"inode\":1,\"precon\":0,\"selected\":false},\n    {\"partno\":\"KEY:A1b\",\"partdes\":\"Customer key Org A1b\",\"mdmId\":\"MDM-3002\",\"inode\":2,\"precon\":0,\"selected\":false},\n    {\"partno\":\"KEY:A2\",\"partdes\":\"Customer key Account A2\",\"mdmId\":\"MDM-2002\",\"inode\":3,\"precon\":0,\"selected\":false},\n    {\"partno\":\"KEY:B1a\",\"partdes\":\"Customer key Org B1a\",\"mdmId\":\"MDM-3004\",\"inode\":4,\"precon\":0,\"selected\":false},\n    {\"partno\":\"AV-ALL\",\"partdes\":\"AV for ALL customers\",\"inode\":5,\"precon\":0,\"selected\":false},\n    {\"partno\":\"AV-TOP-A\",\"partdes\":\"AV tied to Top A\",\"inode\":6,\"precon\":-1,\"selected\":false},\n    {\"partno\":\"AV-ACCT-A1\",\"partdes\":\"AV tied to Account A1\",\"inode\":7,\"precon\":-1,\"selected\":false},\n    {\"partno\":\"AV-ORG-A1b\",\"partdes\":\"AV tied to Org A1b only\",\"inode\":8,\"precon\":-1,\"selected\":false},\n    {\"partno\":\"AV-MIX\",\"partdes\":\"AV tied to Account A2 and Org B1a (N = 2)\",\"inode\":9,\"precon\":-1,\"selected\":false}\n  ],\n  \"Nodes\": [\n    {\"id\":0,\"name\":\"KEY:TopA\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":2,\"node\":[10]}]},\n    {\"id\":1,\"name\":\"KEY:A1\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":2,\"node\":[11]}]},\n    {\"id\":2,\"name\":\"KEY:A1b\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":2,\"node\":[12]}]},\n    {\"id\":3,\"name\":\"KEY:A2\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":2,\"node\":[13]}]},\n    {\"id\":4,\"name\":\"KEY:B1a\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":2,\"node\":[13]}]},\n    {\"id\":5,\"name\":\"Item_AV-ALL\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[]},\n    {\"id\":6,\"name\":\"Item_AV-TOP-A\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[]},\n    {\"id\":7,\"name\":\"Item_AV-ACCT-A1\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[]},\n    {\"id\":8,\"name\":\"Item_AV-ORG-A1b\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[]},\n    {\"id\":9,\"name\":\"Item_AV-MIX\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[]},\n    {\"id\":10,\"name\":\"P_Item_AV-TOP-A (OR over 1 key)\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":67,\"node\":[6]}]},\n    {\"id\":11,\"name\":\"P_Item_AV-ACCT-A1 (OR over 1 key)\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":67,\"node\":[7]}]},\n    {\"id\":12,\"name\":\"P_Item_AV-ORG-A1b (OR over 1 key)\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":67,\"node\":[8]}]},\n    {\"id\":13,\"name\":\"P_Item_AV-MIX (OR over 2 keys)\",\"type\":2,\"g\":-1,\"a\":0,\"b\":0,\"edges\":[{\"type\":67,\"node\":[9]}]}\n  ]\n}\n" };
+let MODEL_TEXT = MODELS.flat;
 
 // <core>
-// Same logic as engine.js / the real processInput.js + processOutput.js, but returns a trace instead of printing.
+// Same logic as engine.js and the real rules engine, but returns a trace instead of printing.
 function createEngine(model){
   const nodeById = new Map(model.Nodes.map(n => [n.id, n]));
   let trace = [], depth = 0;
@@ -127,30 +133,32 @@ function createEngine(model){
 }
 // </core>
 
-let eng, prevAvail = [], prevG = new Map();
+let eng, prevAvail = [], prevG = new Map(), curCust = null;
 const $ = id => document.getElementById(id);
 
 function load(text){
   const m = JSON.parse(text);
   if (!m.Chaids || !m.Items || !m.Nodes) throw new Error("model needs Chaids, Items and Nodes");
-  eng = createEngine(m);
+  eng = createEngine(m); curCust = null;
   prevAvail = m.Items.map((_, i) => eng.available(i));
   prevG = new Map(m.Nodes.map(n => [n.id, n.g]));
   $("trace").innerHTML = ""; render([]);
 }
 function render(changedItems){
   const m = eng.model;
-  $("choices").innerHTML = m.Chaids.map(ch => {
+  const apiHtml = m._api ? apiPicker(m) : "";
+  $("choices").innerHTML = apiHtml + m.Chaids.map(ch => {
     const ok = ch.precon >= 0;
     const items = [];
     for (let i = ch.firstItem; i <= ch.lastItem; i++){
       const it = m.Items[i], av = eng.available(i);
       items.push(`<label class="item ${it.selected ? "sel" : ""} ${av || it.selected ? "" : "blocked"} ${changedItems.includes(i) ? "changed" : ""}">
-        <input type="${ch.multiple === false ? "radio" : "checkbox"}" data-i="${i}" ${it.selected ? "checked" : ""} ${av || it.selected ? "" : "disabled"}>
-        <span><span class="pn">${it.partno}</span> <span class="pill ${av ? "ok" : "bad"}">${av ? "available" : "blocked"}</span><span class="des">${it.partdes}</span></span></label>`);
+        <input type="${ch.multiple === false ? "radio" : "checkbox"}" data-i="${i}" ${it.selected ? "checked" : ""} ${(av || it.selected) && !ch.hidden ? "" : "disabled"}>
+        <span><span class="pn">${it.partno}</span> ${ch.hidden ? `<span class="pill ${it.selected ? "ok" : ""}">${it.selected ? "selected by the API result" : "not selected"}</span>` : `<span class="pill ${av ? "ok" : "bad"}">${av ? "available" : "blocked"}</span>`}<span class="des">${it.partdes}</span></span></label>`);
     }
-    return `<div class="choice"><h3>${ch.chaDes} <span class="pill ${ok ? "ok" : "bad"}">choice ${ok ? "available" : "blocked"}</span></h3>${items.join("")}</div>`;
+    return `<div class="choice"><h3>${ch.chaDes} ${ch.hidden ? `<span class="pill">hidden in the real UI</span>` : `<span class="pill ${ok ? "ok" : "bad"}">choice ${ok ? "available" : "blocked"}</span>`}</h3>${items.join("")}</div>`;
   }).join("");
+  const ac = $("apiCust"); if (ac) ac.onchange = () => pickCustomer(ac.value || null);
   document.querySelectorAll("#choices input").forEach(el => el.addEventListener("click", e => {
     const i = +el.dataset.i, it = m.Items[i];
     e.preventDefault();
@@ -159,6 +167,29 @@ function render(changedItems){
   }));
   $("gates").innerHTML = "<tr><th>id</th><th>gate</th><th>g</th></tr>" + m.Nodes.map(n =>
     `<tr class="${n.g !== prevG.get(n.id) ? "chg" : ""} ${n.g >= 0 ? "on" : ""}"><td>${n.id}</td><td>${n.name}</td><td class="g">${n.g}${n.g >= 0 ? "  on" : ""}</td></tr>`).join("");
+}
+// Keys model: a stand-in for the API that returns the chosen customer id plus its parent and grandparent ids.
+const apiChain = (api, id) => { const by = new Map(api.map(c => [c.id, c])); const r = []; for (let c = by.get(id); c && r.length < 3; c = by.get(c.parent)) r.push(c); return r; };
+function apiPicker(m){
+  const keyIdx = new Map(); m.Items.forEach((it, i) => { if (it.partno.startsWith("KEY:")) keyIdx.set(it.partno.slice(4), i); });
+  const chain = curCust ? apiChain(m._api, curCust) : [];
+  const found = chain.filter(c => keyIdx.has(c.id));
+  return `<div class="choice"><h3>Customer, picked through the API <span class="pill">simulated</span></h3>
+    <select id="apiCust"><option value="">(no customer)</option>${m._api.map(c => `<option value="${c.id}" ${c.id === curCust ? "selected" : ""}>${"\u00a0\u00a0".repeat(c.level - 1)}L${c.level} ${c.name}</option>`).join("")}</select>
+    <p class="note">API returns: ${chain.length ? "[" + chain.map(c => c.id).join(", ") + "]" : "(nothing)"}<br>
+    Key items in the model for those ids: ${found.length ? "[" + found.map(c => "KEY:" + c.id).join(", ") + "]" : "none, so only AVs for all customers are available"}</p></div>`;
+}
+function pickCustomer(id){
+  const m = eng.model, keyIdx = new Map();
+  m.Items.forEach((it, i) => { if (it.partno.startsWith("KEY:")) keyIdx.set(it.partno.slice(4), i); });
+  const keysFor = cid => cid ? apiChain(m._api, cid).map(c => c.id).filter(i => keyIdx.has(i)) : [];
+  const oldK = keysFor(curCust), newK = keysFor(id);
+  let trace = [];
+  oldK.filter(i => !newK.includes(i)).forEach(i => { trace = trace.concat(eng.click(keyIdx.get(i), -1)); });     // deselect first
+  newK.filter(i => !oldK.includes(i)).forEach(i => { trace = trace.concat(eng.click(keyIdx.get(i), 1)); });
+  curCust = id;
+  if (!trace.length) trace = [{ cls: "t-stop", depth: 0, text: "no key item changes, so nothing travels through the graph" }];
+  draw(trace);
 }
 function draw(trace){
   const m = eng.model;
@@ -171,6 +202,9 @@ function draw(trace){
 $("reset").onclick = () => load($("modeljson").value || MODEL_TEXT);
 $("clear").onclick = () => { $("trace").innerHTML = ""; };
 $("load").onclick = () => { try { load($("modeljson").value); $("err").textContent = ""; } catch (e) { $("err").textContent = "Cannot load: " + e.message; } };
+$("modelsel").onchange = () => { MODEL_TEXT = MODELS[$("modelsel").value]; $("modeljson").value = MODEL_TEXT; $("err").textContent = ""; load(MODEL_TEXT); };
 $("modeljson").value = MODEL_TEXT;
 load(MODEL_TEXT);
 </script>
+</body>
+</html>
