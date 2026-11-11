@@ -1,0 +1,176 @@
+<title>Rule Engine Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: two columns (configuration + model on the left, trace + gate counters on the right), stacked on phones. */
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1d2330;--mut:#6b7385;--line:#dde1e8;--ok:#127a3d;--okbg:#e3f5ea;--bad:#a4262c;--badbg:#fbe9ea;--acc:#1f5fd1;--accbg:#e6eefc;--warn:#8a5a00;--warnbg:#fff3d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1d222b;--fg:#e7eaf0;--mut:#98a1b3;--line:#2e3542;--ok:#5fd38d;--okbg:#17301f;--bad:#ff8a8f;--badbg:#3a1c1e;--acc:#7aa7ff;--accbg:#1b2a47;--warn:#f0c15a;--warnbg:#3a2f12;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171d;--card:#1d222b;--fg:#e7eaf0;--mut:#98a1b3;--line:#2e3542;--ok:#5fd38d;--okbg:#17301f;--bad:#ff8a8f;--badbg:#3a1c1e;--acc:#7aa7ff;--accbg:#1b2a47;--warn:#f0c15a;--warnbg:#3a2f12;color-scheme:dark}
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,Segoe UI,sans-serif;padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  header{padding:16px 0;border-bottom:1px solid var(--line)}
+  h1{margin:0;font-size:18px} header p{margin:4px 0 0;color:var(--mut)}
+  main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;padding:16px 0;max-width:1400px;margin:auto}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+  h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+  .choice{margin-bottom:14px}.choice h3{margin:0 0 6px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pill{font-size:12px;padding:1px 8px;border-radius:99px;border:1px solid var(--line)}
+  .pill.ok{background:var(--okbg);color:var(--ok);border-color:transparent}.pill.bad{background:var(--badbg);color:var(--bad);border-color:transparent}
+  label.item{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer}
+  label.item.blocked{opacity:.55;cursor:not-allowed;background:var(--badbg)}
+  label.item.sel{border-color:var(--acc);background:var(--accbg)}
+  label.item.changed{outline:2px solid var(--warn)}
+  .pn{font-family:ui-monospace,Consolas,monospace;font-weight:600}.des{color:var(--mut);display:block;font-size:13px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+  button.primary{background:var(--acc);color:#fff;border-color:transparent}
+  #trace{max-width:100%;font:13px/1.5 ui-monospace,Consolas,monospace;max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);white-space:pre}
+  .t-click{font-weight:700;margin-top:6px;color:var(--acc)}.t-flip{color:var(--ok)}.t-stop{color:var(--mut)}.t-out{color:var(--acc);font-weight:600}.t-warn{color:var(--bad)}
+  table{border-collapse:collapse;width:100%;font-size:13px}.scroll{overflow-x:auto}td,th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+  td.g{font-family:ui-monospace,Consolas,monospace}tr.chg td{background:var(--warnbg)}tr.on td.g{color:var(--ok);font-weight:700}
+  textarea{width:100%;height:260px;font:12px/1.4 ui-monospace,Consolas,monospace;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px}
+  details summary{cursor:pointer;color:var(--acc)} .msg{color:var(--bad);font-size:13px;min-height:18px}
+  .note{color:var(--mut);font-size:13px}
+</style>
+
+<header>
+  <h1>Configurator rule engine – interactive demo</h1>
+  <p>Click an item. The right side shows how the change travels through the gates. Blocked items cannot be selected, like in the real UI.</p>
+</header>
+<main>
+  <div>
+    <section>
+      <h2>Configuration</h2>
+      <div id="choices"></div>
+      <div class="row"><button id="reset">Reset</button><button id="clear">Clear trace</button></div>
+      <p class="note">Yellow outline = availability changed by your last click. Gate rows highlighted = a gate's counter changed.</p>
+    </section>
+    <section style="margin-top:16px">
+      <h2>Model (editable)</h2>
+      <details><summary>Show / edit model JSON</summary>
+        <textarea id="modeljson" spellcheck="false"></textarea>
+        <div class="row"><button class="primary" id="load">Load this model</button></div>
+        <div class="msg" id="err"></div>
+      </details>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>Trace of the last click (depth-first walk)</h2>
+      <div id="trace"></div>
+      <p class="note"><span class="t-flip">green</span> = gate flipped and passes a signal on, <span class="t-stop">grey</span> = no flip so the branch stops, <span class="t-out">blue</span> = output edge changes an item or choice.</p>
+    </section>
+    <section style="margin-top:16px">
+      <h2>Gate states (<span class="pn">g</span> counters)</h2>
+      <div class="scroll"><table id="gates"></table></div>
+      <p class="note">A gate is <b>on</b> when g &ge; 0. Start values encode the rule: -1 = needs one input (OR), -2 = needs two (AND).</p>
+    </section>
+  </div>
+</main>
+<script>
+const MODEL_TEXT = "{\n  \"_comment\": \"ARTIFICIAL model in the real shape (Chaids / Items / Nodes) with generic names. Customer-specific AVs: 0 wires = all customers (AV-ALL), 1 customer (AV-ONE), N customers (AV-TWO N=2, AV-THREE N=3). Node ids 0..7 are item nodes (node id == item index).\",\n  \"Chaids\": [\n    {\"chaId\": \"CUST\", \"chaDes\": \"Customer\", \"multiple\": false, \"precon\": 0, \"firstItem\": 0, \"lastItem\": 3},\n    {\"chaId\": \"SERVICES\", \"chaDes\": \"Services AVs (opens once a customer is chosen)\", \"precon\": -1, \"firstItem\": 4, \"lastItem\": 7}\n  ],\n  \"Items\": [\n    {\"partno\": \"CUST:A\", \"partdes\": \"Customer A\", \"inode\": 0, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:B\", \"partdes\": \"Customer B\", \"inode\": 1, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:C\", \"partdes\": \"Customer C\", \"inode\": 2, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"CUST:D\", \"partdes\": \"Customer D\", \"inode\": 3, \"precon\": 0, \"selected\": false},\n    {\"partno\": \"AV-ONE\", \"partdes\": \"AV for 1 customer  [Customer A]\", \"inode\": 4, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-TWO\", \"partdes\": \"AV for N=2 customers  [Customer B, Customer C]\", \"inode\": 5, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-THREE\", \"partdes\": \"AV for N=3 customers  [Customer A, Customer C, Customer D]  (a real configurator can have 20 or more)\", \"inode\": 6, \"precon\": -1, \"selected\": false},\n    {\"partno\": \"AV-ALL\", \"partdes\": \"AV for ALL customers  [no customer-specific rule]\", \"inode\": 7, \"precon\": 0, \"selected\": false}\n  ],\n  \"Nodes\": [\n    {\"id\": 0, \"name\": \"CUST:A\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 12, 17]}]},\n    {\"id\": 1, \"name\": \"CUST:B\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 15]}]},\n    {\"id\": 2, \"name\": \"CUST:C\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 15, 17]}]},\n    {\"id\": 3, \"name\": \"CUST:D\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [10, 11, 17]}]},\n    {\"id\": 4, \"name\": \"Item_AV-ONE\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 5, \"name\": \"Item_AV-TWO\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 6, \"name\": \"Item_AV-THREE\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 7, \"name\": \"Item_AV-ALL\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": []},\n    {\"id\": 10, \"name\": \"Choice_CUST_CVG1 (any customer chosen)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [13, 16]}]},\n    {\"id\": 11, \"name\": \"Choice_CUST_CVG2 (any customer, feeds CustA* inverted)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 130, \"node\": [12]}]},\n    {\"id\": 12, \"name\": \"CustA* (no customer yet, or it is Customer A)\", \"type\": 2, \"g\": 0, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [13]}]},\n    {\"id\": 13, \"name\": \"Pa_CUST_A (AND: customer chosen AND CustA*)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 2, \"node\": [14]}]},\n    {\"id\": 14, \"name\": \"P_Item_AV-ONE (1 customer, AND)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [4]}]},\n    {\"id\": 15, \"name\": \"P_Item_AV-TWO (OR: Customer B or C)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [5]}]},\n    {\"id\": 16, \"name\": \"P_Choice_SERVICES (opens the services choice)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 65, \"node\": [1]}]},\n    {\"id\": 17, \"name\": \"P_Item_AV-THREE (OR: Customer A, C or D)\", \"type\": 2, \"g\": -1, \"a\": 0, \"b\": 0, \"edges\": [{\"type\": 67, \"node\": [6]}]}\n  ]\n}\n";
+
+// <core>
+// Same logic as engine.js / the real processInput.js + processOutput.js, but returns a trace instead of printing.
+function createEngine(model){
+  const nodeById = new Map(model.Nodes.map(n => [n.id, n]));
+  let trace = [], depth = 0;
+  const log = (cls, text) => trace.push({cls, depth, text});
+  function propagate(edgeType, id, change){
+    if (edgeType & 0x40) return output(edgeType, id, change);
+    return input(edgeType, id, change);
+  }
+  function input(edgeType, id, change){
+    if (edgeType & 0x80) change = -change;           // INVERT flag
+    const op = edgeType & 0x7f, node = nodeById.get(id);
+    if (!node) return;
+    const before = node.g;
+    let out = 0;
+    if (op === 0x2){ node.g += change; out = before >= 0 ? (node.g >= 0 ? 0 : -1) : (node.g >= 0 ? 1 : 0); }   // GTE_0
+    else if (op === 0x1){ node.a += change; out = change; }                                                     // SUM_a
+    log(out === 0 ? "t-stop" : "t-flip", `[${node.id}] ${node.name}  g ${before} -> ${node.g}  ` + (out === 0 ? "no flip -> STOP" : `FLIP, emits ${out > 0 ? "+" : ""}${out}`));
+    if (out === 0) return;
+    depth++;
+    for (const e of node.edges){
+      const targets = (e.type & 0xf00) === 0x100 ? Array.from({length:e.node[1]}, (_, i) => e.node[0] + i) : e.node;   // CML or LUT
+      for (const t of targets) propagate((e.type & 0xff) | (e.type & 0x80), t, out);
+    }
+    depth--;
+  }
+  function output(edgeType, target, change){
+    if (edgeType === 0x43){ const it = model.Items[target]; it.precon += change;
+      log("t-out", `=> I_AVL  item ${it.partno}  precon ${it.precon - change} -> ${it.precon}  (${it.precon >= 0 ? "AVAILABLE" : "blocked"})`); }
+    else if (edgeType === 0x41){ const ch = model.Chaids[target]; ch.precon += change;
+      log("t-out", `=> C_AVL  choice ${ch.chaId}  precon ${ch.precon - change} -> ${ch.precon}  (${ch.precon >= 0 ? "AVAILABLE" : "blocked"})`); }
+    else log("t-warn", `=> output ${edgeType.toString(16)} not implemented in this demo`);
+  }
+  const choiceOf = idx => model.Chaids.find(c => idx >= c.firstItem && idx <= c.lastItem);
+  const available = idx => model.Items[idx].precon >= 0 && choiceOf(idx).precon >= 0;
+  function click(idx, change){
+    trace = []; depth = 0;
+    const it = model.Items[idx];
+    if (change > 0 && !available(idx)) { log("t-warn", `refused: ${it.partno} is not available`); return trace; }
+    const batch = [];
+    if (change > 0 && choiceOf(idx).multiple === false)      // single-select choice: deselect the old one first
+      for (let i = choiceOf(idx).firstItem; i <= choiceOf(idx).lastItem; i++) if (i !== idx && model.Items[i].selected) batch.push([i, -1]);
+    batch.push([idx, change]);                                // deselections run before selections (same as the real engine)
+    for (const [i, c] of batch){
+      const x = model.Items[i];
+      log("t-click", `${c > 0 ? "SELECT" : "DESELECT"} ${x.partno}  (${x.partdes})`);
+      x.selected = c > 0;
+      input(0x2, x.inode, c);                                 // UI sends {inputEdge: 2, inputNode: <item node>, changeIn: +-1}
+    }
+    return trace;
+  }
+  return {model, click, available, choiceOf};
+}
+// </core>
+
+let eng, prevAvail = [], prevG = new Map();
+const $ = id => document.getElementById(id);
+
+function load(text){
+  const m = JSON.parse(text);
+  if (!m.Chaids || !m.Items || !m.Nodes) throw new Error("model needs Chaids, Items and Nodes");
+  eng = createEngine(m);
+  prevAvail = m.Items.map((_, i) => eng.available(i));
+  prevG = new Map(m.Nodes.map(n => [n.id, n.g]));
+  $("trace").innerHTML = ""; render([]);
+}
+function render(changedItems){
+  const m = eng.model;
+  $("choices").innerHTML = m.Chaids.map(ch => {
+    const ok = ch.precon >= 0;
+    const items = [];
+    for (let i = ch.firstItem; i <= ch.lastItem; i++){
+      const it = m.Items[i], av = eng.available(i);
+      items.push(`<label class="item ${it.selected ? "sel" : ""} ${av || it.selected ? "" : "blocked"} ${changedItems.includes(i) ? "changed" : ""}">
+        <input type="${ch.multiple === false ? "radio" : "checkbox"}" data-i="${i}" ${it.selected ? "checked" : ""} ${av || it.selected ? "" : "disabled"}>
+        <span><span class="pn">${it.partno}</span> <span class="pill ${av ? "ok" : "bad"}">${av ? "available" : "blocked"}</span><span class="des">${it.partdes}</span></span></label>`);
+    }
+    return `<div class="choice"><h3>${ch.chaDes} <span class="pill ${ok ? "ok" : "bad"}">choice ${ok ? "available" : "blocked"}</span></h3>${items.join("")}</div>`;
+  }).join("");
+  document.querySelectorAll("#choices input").forEach(el => el.addEventListener("click", e => {
+    const i = +el.dataset.i, it = m.Items[i];
+    e.preventDefault();
+    const trace = eng.click(i, it.selected ? -1 : 1);
+    draw(trace);
+  }));
+  $("gates").innerHTML = "<tr><th>id</th><th>gate</th><th>g</th></tr>" + m.Nodes.map(n =>
+    `<tr class="${n.g !== prevG.get(n.id) ? "chg" : ""} ${n.g >= 0 ? "on" : ""}"><td>${n.id}</td><td>${n.name}</td><td class="g">${n.g}${n.g >= 0 ? "  on" : ""}</td></tr>`).join("");
+}
+function draw(trace){
+  const m = eng.model;
+  $("trace").innerHTML = trace.map(t => `<div class="${t.cls}">${"│ ".repeat(t.depth)}${t.text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>`).join("");
+  const changed = m.Items.map((_, i) => i).filter(i => eng.available(i) !== prevAvail[i]);
+  render(changed);
+  prevAvail = m.Items.map((_, i) => eng.available(i));
+  prevG = new Map(m.Nodes.map(n => [n.id, n.g]));
+}
+$("reset").onclick = () => load($("modeljson").value || MODEL_TEXT);
+$("clear").onclick = () => { $("trace").innerHTML = ""; };
+$("load").onclick = () => { try { load($("modeljson").value); $("err").textContent = ""; } catch (e) { $("err").textContent = "Cannot load: " + e.message; } };
+$("modeljson").value = MODEL_TEXT;
+load(MODEL_TEXT);
+</script>
