@@ -66,3 +66,14 @@ node engine.js model.json +AV-ONE                   # + select, - deselect, matc
 The engine implements only `GTE_0` and `SUM_a` gates, the invert flag, LUT and CML node lists, and the `C_AVL` and `I_AVL` outputs. There is no auto-select, conflict or quantity logic.
 The clicked item is marked selected directly. Model items use the real field names (`partno`, `partdes`, `precon`, `selected`, `inode`, ...). `mdmId` is a new field proposed for the MDM id.
 Which choices are hidden is a constant in the page (`HIDDEN_CHOICES`), as in the real engine, not a field in the model.
+
+## Sample PCS files (`pcs-samples/`)
+`node make-pcs.mjs` writes one sample `.PCS` per customer scenario (same layout as a real file: `PCR_SPEC`, `RELEASE_INFO`, the `CS_C` customer values, then the items with `Conditional Selection`). `node pcs.test.mjs` reads them back and checks each AV's customers against `avs.json`.
+All names, part numbers and the e-mail are artificial. The files follow the **proposed** format: no local `T0xx` codes. The `CS_C` Value ID is the MDM id, only customers that an AV is tied to are listed, and the hierarchy is not in the file (the API returns the parent and grandparent ids at selection time).
+
+| File | Scenario | Conditional Selection |
+|---|---|---|
+| `1_all_customers.PCS` | all customers (no `CS_C` values needed) | empty |
+| `2_one_customer.PCS` | 1 customer | `CS_C + CS_C MDM-3002` |
+| `3_n_customers.PCS` | N customers | `CS_C + CS_C MDM-2002,MDM-3004` |
+| `4_all_scenarios.PCS` | all of the above, plus AVs tied to a Top or an Account | one id per tied customer; everything below inherits through the API |
